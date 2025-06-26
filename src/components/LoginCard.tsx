@@ -2,19 +2,34 @@ import { useState } from 'react'
 import { Link } from "react-router"
 import { Lock, Mail, Eye } from "lucide-react"
 
-type LogInForm = {
-    email: string,
-    password: string,
-}
-
 function LoginCard() {
     const [email, setEmail] = useState('')
     const [password, setPassword] = useState('')
     const [showPassword, setShowPassword] = useState(false)
-    const [form, setForm] = useState<LogInForm>({ 
-        email: '',
-        password: '',
-    })
+    const [signInData, setSignInData] = useState<any>(null)
+
+    const signIn = async () => {
+        try {
+            const response = await fetch("http://localhost:3000/login", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ email: email, password: password })
+            })
+            if (response.ok) {
+                const data = await response.json()
+                setSignInData(data)
+                console.log(data)
+                if (data.role) {
+                    alert("Se ha iniciado sesión correctamente.")
+                }
+            }
+        } catch (error) {
+            console.error(error)
+            return
+        }
+    }
 
     return (
         <>
@@ -59,17 +74,14 @@ function LoginCard() {
                             </div>
                         </div>
                         <div className="button w-full">
-                            <button type="submit" className="bg-gradient-to-r from-blue-500 to-purple-600 rounded-md w-full text-white py-3 cursor-pointer font-semibold">Iniciar Sesión</button>
+                            <button type="submit" className="bg-gradient-to-r from-blue-500 to-purple-600 rounded-md w-full text-white py-3 cursor-pointer font-semibold" onClick={() => {
+                                signIn()
+                            }}>Iniciar Sesión</button>
                         </div>
                         <div className="third-party-auth flex flex-col items-center justify-center w-full gap-4">
                             <p className="uppercase text-neutral-500 text-sm text-center">O continúa con</p>
                             <div className="google-btn w-full">
-                                <button className="dark:bg-black/30 dark:hover:bg-black/50 bg-white/50 border-white/30 transition-all duration-200 w-full flex justify-center items-center gap-2 py-3 border dark:border-neutral-700 rounded-md cursor-pointer text-neutral-500 dark:text-neutral-200 hover:text-neutral-800 dark:hover:text-white" onClick={() => {
-                                    setForm({ 
-                                        email: email,
-                                        password: password
-                                    })
-                                }}>
+                                <button className="dark:bg-black/30 dark:hover:bg-black/50 bg-white/50 border-white/30 transition-all duration-200 w-full flex justify-center items-center gap-2 py-3 border dark:border-neutral-700 rounded-md cursor-pointer text-neutral-500 dark:text-neutral-200 hover:text-neutral-800 dark:hover:text-white">
                                     <svg className="w-4 h-4 mr-2" viewBox="0 0 24 24">
                                         <path
                                             fill="currentColor"
