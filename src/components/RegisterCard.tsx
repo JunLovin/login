@@ -1,13 +1,7 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { Link } from "react-router"
 import { Lock, Mail, Eye, User } from "lucide-react"
-
-type RegisterForm = {
-    name: string,
-    lastname: string,
-    email: string,
-    password: string,
-}
+import { createClient } from '@supabase/supabase-js'
 
 function RegisterCard() {
     const [name, setName] = useState('')
@@ -17,12 +11,44 @@ function RegisterCard() {
     const [passwordRepeated, setPasswordRepeated] = useState('')
     const [showPassword, setShowPassword] = useState(false)
     const [showPasswordRepeated, setShowPasswordRepeated] = useState(false)
-    const [form, setForm] = useState<RegisterForm>({
-        name: '',
-        lastname: '',
-        email: '',
-        password: '',
-    })
+    const passwordRef = useRef<HTMLInputElement>(null)
+    const passwordRepeatedRef = useRef<HTMLInputElement>(null)
+    const supabase = createClient(import.meta.env.VITE_SUPABASE_URL as string, import.meta.env.VITE_SUPABASE_ANON_KEY as string)
+
+    const signUp = async () => {
+        try {
+            const response = await fetch("http://localhost:3000/signup", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    email: email,
+                    password: password
+                })
+            })
+            if (response.ok) {
+                const data = await response.json()
+                alert("Se ha enviado un correo de verificación a: " + email)
+                console.log(data)
+            }
+        } catch (error) {
+            console.error(error)
+            return
+        }
+    }
+
+    const oauth = async () => {
+        const { data, error } = await supabase.auth.signInWithOAuth({
+            provider: 'google',
+            options: {
+                redirectTo: 'http://localhost:5173/'
+            }
+        })
+
+        if (error) alert(error)
+        if (data) console.log("Redirigiendo para inicio de sesión con google... " + data)
+    }
 
     return (
         <>
@@ -66,7 +92,7 @@ function RegisterCard() {
                             <label htmlFor="password" className="font-semibold text-neutral-500 dark:text-white text-sm">Contraseña</label>
                             <div className="input-pass flex relative">
                                 <Lock className="absolute left-3 bottom-[9px]" />
-                                <input type={showPassword ? 'text' : 'password'} id="password" name="password" className="w-full dark:bg-black/40 pl-12 pr-4 py-2 rounded-md border dark:border-gray-800 outline-0 focus:border-blue-400 dark:focus:border-blue-400 transition-all duration-300 bg-white/40 border-white/10" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="********" />
+                                <input ref={passwordRef} type={showPassword ? 'text' : 'password'} id="password" name="password" className="w-full dark:bg-black/40 pl-12 pr-4 py-2 rounded-md border dark:border-gray-800 outline-0 focus:border-blue-400 dark:focus:border-blue-400 transition-all duration-300 bg-white/40 border-white/10" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="********" />
                                 <Eye className="absolute right-3 bottom-[9px] cursor-pointer" onClick={() => {
                                     setShowPassword(!showPassword)
                                 }} />
@@ -76,7 +102,7 @@ function RegisterCard() {
                             <label htmlFor="password-repeat" className="font-semibold text-neutral-500 dark:text-white text-sm">Repetir Contraseña</label>
                             <div className="input-pass flex relative">
                                 <Lock className="absolute left-3 bottom-[9px]" />
-                                <input type={showPasswordRepeated ? 'text' : 'password'} id="password-repeat" name="password-repeat" className="w-full dark:bg-black/40 pl-12 pr-4 py-2 rounded-md border dark:border-gray-800 outline-0 focus:border-blue-400 dark:focus:border-blue-400 transition-all duration-300 bg-white/40 border-white/10" value={passwordRepeated} onChange={(e) => setPasswordRepeated(e.target.value)} placeholder="********" />
+                                <input ref={passwordRepeatedRef} type={showPasswordRepeated ? 'text' : 'password'} id="password-repeat" name="password-repeat" className="w-full dark:bg-black/40 pl-12 pr-4 py-2 rounded-md border dark:border-gray-800 outline-0 focus:border-blue-400 dark:focus:border-blue-400 transition-all duration-300 bg-white/40 border-white/10" value={passwordRepeated} onChange={(e) => setPasswordRepeated(e.target.value)} placeholder="********" />
                                 <Eye className="absolute right-3 bottom-[9px] cursor-pointer" onClick={() => {
                                     setShowPasswordRepeated(!showPasswordRepeated)
                                 }} />
@@ -89,19 +115,19 @@ function RegisterCard() {
                             </div>
                         </div>
                         <div className="button w-full">
-                            <button type="submit" className="bg-gradient-to-r from-green-500 to-blue-600 rounded-md w-full text-white py-3 cursor-pointer font-semibold">Crear Cuenta</button>
+                            <button type="submit" className="bg-gradient-to-r from-green-500 to-blue-600 rounded-md w-full text-white py-3 cursor-pointer font-semibold" onClick={async () => {
+                                if (password !== passwordRepeated && passwordRef.current && passwordRepeatedRef.current) {
+                                    passwordRef.current.style.borderColor = "red"
+                                    passwordRepeatedRef.current.style.borderColor = "red"
+                                    return
+                                }
+                                await signUp()
+                            }}>Crear Cuenta</button>
                         </div>
                         <div className="third-party-auth flex flex-col items-center justify-center w-full gap-4">
                             <p className="uppercase text-neutral-500 text-sm text-center">O regístrate con</p>
                             <div className="google-btn w-full">
-                                <button className="dark:bg-black/30 dark:hover:bg-black/50 bg-white/50 border-white/30 transition-all duration-200 w-full flex justify-center items-center gap-2 py-3 border dark:border-neutral-700 rounded-md cursor-pointer text-neutral-500 dark:text-neutral-200 hover:text-neutral-800 dark:hover:text-white" onClick={() => {
-                                    setForm({
-                                        name: name,
-                                        lastname: lastname,
-                                        email: email,
-                                        password: password,
-                                    })
-                                }}>
+                                <button type="submit" className="dark:bg-black/30 dark:hover:bg-black/50 bg-white/50 border-white/30 transition-all duration-200 w-full flex justify-center items-center gap-2 py-3 border dark:border-neutral-700 rounded-md cursor-pointer text-neutral-500 dark:text-neutral-200 hover:text-neutral-800 dark:hover:text-white" onClick={() => oauth()}>
                                     <svg className="w-4 h-4 mr-2" viewBox="0 0 24 24">
                                         <path
                                             fill="currentColor"
