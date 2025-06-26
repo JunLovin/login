@@ -1,16 +1,25 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Link } from "react-router"
 import { Shield, Mail } from "lucide-react"
-
-type RecoveryForm = {
-    email: string,
-}
+import { createClient } from '@supabase/supabase-js'
 
 function RecoveryCard() {
     const [email, setEmail] = useState('')
-    const [form, setForm] = useState<RecoveryForm>({
-        email: '',
-    })
+    const supabase = createClient(import.meta.env.VITE_SUPABASE_URL as string, import.meta.env.VITE_SUPABASE_ANON_KEY as string)
+
+    const sendRecoveryEmail = async () => {
+        const { data, error } = await supabase.auth.resetPasswordForEmail(email)
+        if (error) console.error(error)
+        if (data) console.log(data)
+        supabase.auth.onAuthStateChange(async (event, session) => {
+            if (event === 'PASSWORD_RECOVERY') {
+                const newPassword = prompt("Ingresa tu nueva contraseña: ")
+                const { data, error } = await supabase.auth.updateUser({ password: newPassword! })
+                if (error) console.log(error)
+                if (data) alert("Contraseña actualizada correctamente!")
+            }
+        })
+    }
 
     return (
         <>
@@ -37,9 +46,7 @@ function RecoveryCard() {
                         </div>
                         <div className="button w-full">
                             <button type="submit" className="bg-gradient-to-r from-orange-500 to-red-600 rounded-md w-full text-white py-3 cursor-pointer font-semibold" onClick={() => {
-                                setForm({
-                                    email: email
-                                })
+                                sendRecoveryEmail()
                             }}>Enviar Instrucciones</button>
                         </div>
                         <div className="register flex justify-center items-center text-center text-sm">
