@@ -11,8 +11,10 @@
     "start": "node --watch server.ts"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.50.1",
     "@tailwindcss/vite": "^4.1.10",
     "body-parser": "^2.2.0",
+    "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
     "dotenv": "^16.5.0",
     "express": "^5.1.0",
