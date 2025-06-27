@@ -1,14 +1,18 @@
 import { useState } from 'react'
-import { Link } from "react-router"
+import { Link, useNavigate } from "react-router"
 import { Lock, Mail, Eye } from "lucide-react"
+import Loading from './Loading'
 
 function LoginCard() {
     const [email, setEmail] = useState('')
     const [password, setPassword] = useState('')
     const [showPassword, setShowPassword] = useState(false)
     const [signInData, setSignInData] = useState<any>(null)
+    const [loading, setLoading] = useState(false)
+    const navigate = useNavigate()
 
     const signIn = async () => {
+        setLoading(true)
         try {
             const response = await fetch("http://localhost:3000/login", {
                 method: 'POST',
@@ -22,14 +26,17 @@ function LoginCard() {
                 setSignInData(data)
                 console.log(data)
                 if (data.role) {
-                    alert("Se ha iniciado sesión correctamente.")
+                    navigate('/home')
                 }
             }
         } catch (error) {
             console.error(error)
-            return
+        } finally {
+            setLoading(false)
         }
     }
+
+    if (loading) return <Loading />
 
     return (
         <>
