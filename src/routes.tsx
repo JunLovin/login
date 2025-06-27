@@ -1,4 +1,5 @@
 import App from './App'
+import Home from './components/Home'
 import RecoveryCard from './components/RecoveryCard'
 import RegisterCard from './components/RegisterCard'
 
@@ -16,6 +17,10 @@ const routes = [
                 element: <RecoveryCard />
             }
         ]
+    },
+    {
+        path: '/home',
+        element: <Home />
     }
 ]
 
