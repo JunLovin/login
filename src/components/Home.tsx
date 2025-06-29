@@ -1,9 +1,23 @@
 import { useState } from "react"
 import { Bell, Moon, Sun, User, LogOut } from "lucide-react"
+import { createClient } from "@supabase/supabase-js"
+import { useNavigate } from "react-router"
 import Footer from "./Footer"
 
 function Home() {
     const [darkMode, setDarkMode] = useState(true)
+    const navigate = useNavigate()
+    const supabase = createClient(import.meta.env.VITE_SUPABASE_URL as string, import.meta.env.VITE_SUPABASE_ANON_KEY as string)
+
+    const logOut = async () => {
+        const { data, error } = await supabase.auth.signOut()
+        if (error) {
+            console.error(error)
+            return
+        }
+        console.log(data)
+        navigate('/')
+    }
 
     return (
         <>
@@ -41,7 +55,9 @@ function Home() {
                                             <Sun className="stroke-yellow-500 p-0.5" />
                                         )}
                                     </button>
-                                    <button className="cursor-pointer p-2 bg-white/50 hover:bg-white/40 dark:bg-neutral-800/50 dark:hover:bg-neutral-700/50 transition-all duration-200 w-max h-max rounded-md dark:text-white text-black">
+                                    <button className="cursor-pointer p-2 bg-white/50 hover:bg-white/40 dark:bg-neutral-800/50 dark:hover:bg-neutral-700/50 transition-all duration-200 w-max h-max rounded-md dark:text-white text-black" onClick={() => {
+                                        logOut()
+                                    }}>
                                         <LogOut />
                                     </button>
                                 </ul>
