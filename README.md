@@ -1,6 +1,6 @@
-# LoginGe
+# Login Page
 
-LoginGe es una aplicación de autenticación moderna construida con React, Vite, TailwindCSS y Supabase. Permite a los usuarios registrarse, iniciar sesión y recuperar su cuenta utilizando autenticación tradicional (email/contraseña) y autenticación OAuth con Google.
+Login Page es una aplicación de autenticación moderna construida con React, Vite, TailwindCSS y Supabase. Permite a los usuarios registrarse, iniciar sesión y recuperar su cuenta utilizando autenticación tradicional (email/contraseña) y autenticación OAuth con Google.
 
 ## Características
 
