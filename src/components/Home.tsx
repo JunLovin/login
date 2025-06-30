@@ -65,7 +65,23 @@ function Home() {
                         </div>
                     </div>
                     <div className="main-container">
-
+                        <div className="grid-container flex px-8 justify-center gap-4 items-center">
+                            <div className="grid-left grid">
+                                <div className="greeting"></div>
+                                <div className="assets grid grid-cols-2">
+                                    <div className="assets"></div>
+                                    <div className="assets"></div>
+                                    <div className="assets"></div>
+                                    <div className="assets"></div>
+                                </div>
+                                <div className="progress"></div>
+                            </div>
+                            <div className="grid-right grid">
+                                <div className="fast-assets"></div>
+                                <div className="activities"></div>
+                                <div className="account-state"></div>
+                            </div>
+                        </div>
                     </div>
                     <div className="footer-container">
                         <Footer />
