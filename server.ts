@@ -49,7 +49,7 @@ app.post('/login', async (req, res) => {
     }
     
     if (data.session) {
-        return res.status(201).json({ success: "Se ha iniciado sesión correctamente", role: "authenticated" })
+        return res.status(201).json({ success: "Se ha iniciado sesión correctamente", role: "authenticated", info: data.user })
     }
 })
 
