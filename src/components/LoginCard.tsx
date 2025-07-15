@@ -2,6 +2,8 @@ import { useState } from 'react'
 import { Link, useNavigate } from "react-router"
 import { Lock, Mail, Eye } from "lucide-react"
 import Loading from './Loading'
+import { createClient } from '@supabase/supabase-js'
+import Toast from './Toast'
 
 function LoginCard() {
     const [email, setEmail] = useState('')
@@ -9,7 +11,10 @@ function LoginCard() {
     const [showPassword, setShowPassword] = useState(false)
     const [signInData, setSignInData] = useState<any>(null)
     const [loading, setLoading] = useState(false)
+    const [showToast, setShowToast] = useState(false)
+    const [status, setStatus] = useState('')
     const navigate = useNavigate()
+    const supabase = createClient(import.meta.env.VITE_SUPABASE_URL as string, import.meta.env.VITE_SUPABASE_ANON_KEY as string)
 
     const signIn = async () => {
         setLoading(true)
@@ -24,15 +29,44 @@ function LoginCard() {
             if (response.ok) {
                 const data = await response.json()
                 setSignInData(data)
-                console.log(data)
-                if (data.role) {
+                localStorage.setItem('user', JSON.stringify(data.info.email))
+                if (data.role === "authenticated") {
                     navigate('/home')
                 }
             }
+            setStatus('Error al iniciar sesión, datos incorrectos')
+            setShowToast(true)
+            setTimeout(() => {
+                setStatus("")
+                setShowToast(false)
+            }, 2000)
         } catch (error) {
-            console.error(error)
+            setStatus('Error al iniciar sesión')
+            setShowToast(true)
+            setTimeout(() => {
+                setStatus("")
+                setShowToast(false)
+            }, 2000)
         } finally {
             setLoading(false)
+        }
+    }
+
+    const oauth = async () => {
+        const { data, error } = await supabase.auth.signInWithOAuth({
+            provider: 'google',
+            options: {
+                redirectTo: 'http://localhost:5173/home'
+            }
+        })
+        if (error) {
+            setStatus('Error al iniciar sesión')
+            setShowToast(true)
+            setTimeout(() => {
+                setStatus("")
+                setShowToast(false)
+            }, 2000)
+            return
         }
     }
 
@@ -40,6 +74,7 @@ function LoginCard() {
 
     return (
         <>
+            <Toast show={showToast} message={status} onClose={() => setShowToast(false)} type={status && status.startsWith('Error') ? 'error' : 'success'} />
             <div className="login-card w-lg max-2xl:py-8 max-md:w-md dark:bg-black/20 rounded-xl p-8 h-max py-16 shadow-2xl border-white/30 dark:border-white/10 bg-white/20 transition-all duration-300">
                 <div className="card-top flex flex-col items-center justify-center">
                     <div className="card-icon flex flex-col items-center justify-center">
@@ -83,12 +118,23 @@ function LoginCard() {
                         <div className="button w-full">
                             <button type="submit" className="bg-gradient-to-r from-blue-500 to-purple-600 rounded-md w-full text-white py-3 cursor-pointer font-semibold" onClick={() => {
                                 signIn()
+                                if (!email || !password) {
+                                    setStatus('Por favor, completa todos los campos')
+                                    setShowToast(true)
+                                    setTimeout(() => {
+                                        setStatus("")
+                                        setShowToast(false)
+                                    }, 2000)
+                                    return
+                                }
                             }}>Iniciar Sesión</button>
                         </div>
                         <div className="third-party-auth flex flex-col items-center justify-center w-full gap-4">
                             <p className="uppercase text-neutral-500 text-sm text-center">O continúa con</p>
                             <div className="google-btn w-full">
-                                <button className="dark:bg-black/30 dark:hover:bg-black/50 bg-white/50 border-white/30 transition-all duration-200 w-full flex justify-center items-center gap-2 py-3 border dark:border-neutral-700 rounded-md cursor-pointer text-neutral-500 dark:text-neutral-200 hover:text-neutral-800 dark:hover:text-white">
+                                <button className="dark:bg-black/30 dark:hover:bg-black/50 bg-white/50 border-white/30 transition-all duration-200 w-full flex justify-center items-center gap-2 py-3 border dark:border-neutral-700 rounded-md cursor-pointer text-neutral-500 dark:text-neutral-200 hover:text-neutral-800 dark:hover:text-white" onClick={() => {
+                                    oauth()
+                                }}>
                                     <svg className="w-4 h-4 mr-2" viewBox="0 0 24 24">
                                         <path
                                             fill="currentColor"
