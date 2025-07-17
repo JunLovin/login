@@ -75,8 +75,8 @@ function Home() {
                                     </div>
                                 </div>
                                 <div className="text flex flex-col gap-2">
-                                    <h2 className="dark:text-white font-bold text-2xl text-black">Dashboard</h2>
-                                    <p className="text-slate-400">Bienvenido de vuelta, {JSON.parse(localStorage.getItem('full_name') || JSON.stringify(userEmail) || JSON.stringify('usuario'))}</p>
+                                    <h2 className="dark:text-white font-bold text-2xl text-black max-sm:text-xl">Dashboard</h2>
+                                    <p className="text-slate-400 text-sm max-sm:hidden">Bienvenido de vuelta, {JSON.parse(localStorage.getItem('full_name') || JSON.stringify(userEmail) || JSON.stringify('usuario'))}</p>
                                 </div>
                             </div>
                             <div className="header-right">
@@ -100,8 +100,8 @@ function Home() {
                             </div>
                         </div>
                     </div>
-                    <div className="main-container flex-1 w-full flex gap-8 justify-evenly items-center px-8">
-                        <div className="dashboard-content-left grid justify-items-center items-center grid-rows-2 gap-6 w-[65%]">
+                    <div className="main-container flex-1 w-full flex gap-8 justify-evenly items-center px-8 max-xl:flex-col max-xl:py-8 max-xl:overflow-y-scroll">
+                        <div className="dashboard-content-left grid justify-items-center items-center grid-rows-2 gap-6 w-[65%] max-sm:w-full py-5">
                             <div className="edit-profile w-full h-full bg-white/20 rounded-lg shadow-lg p-8 dark:bg-black/30 backdrop-blur-xl flex flex-col justify-center gap-4">
                                 <h2 className="font-bold text-2xl max-sm:text-xl dark:text-white leading-normal">Editar Perfil</h2>
                                 <form action="" onSubmit={e => e.preventDefault()} className="flex flex-col justify-center items-start gap-4 dark:text-white w-full">
@@ -122,9 +122,9 @@ function Home() {
                                     <button type="submit" className="bg-gradient-to-r from-blue-500 to-purple-600 rounded-md w-full text-white py-3 cursor-pointer font-semibold">Guardar</button>
                                 </form>
                             </div>
-                            <div className="edit-avatar w-full h-full bg-white/20 rounded-lg shadow-lg p-8 dark:bg-black/30 backdrop-blur-xl flex justify-evenly gap-4 items-center ">
+                            <div className="edit-avatar w-full h-full bg-white/20 rounded-lg shadow-lg p-8 dark:bg-black/30 backdrop-blur-xl flex justify-evenly gap-4 items-center max-sm:flex-col ">
                                 <div className="edit-avatar-left-preview flex justify-center w-[50%]">
-                                    <div className="avatar-preview size-52 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full">
+                                    <div className="avatar-preview size-52 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full max-sm:size-35 max-lg:size-45">
                                         <img src={avatar ? makeBlobUrl(avatar) : JSON.parse(localStorage.getItem('avatar') || JSON.stringify('http://placebear.com/250/250')) } alt="user avatar" className="w-full h-full rounded-full object-cover" />
                                     </div>
                                 </div>
@@ -140,8 +140,8 @@ function Home() {
                                 </div>
                             </div>
                         </div>
-                        <div className="dashboard-content-right flex h-[95%] relative w-[35%]">
-                            <div className="creator-info w-full rounded-md h-full bg-white/50 dark:bg-black/30 backdrop-blur-xl p-8 shadow-xl">
+                        <div className="dashboard-content-right flex h-[95%] relative w-[35%] max-lg:w-[65%] max-md:w-[95%] max-sm:w-full">
+                            <div className="creator-info w-full rounded-md h-full bg-white/50 dark:bg-black/30 backdrop-blur-xl p-8 shadow-xl max-xl:h-120">
                                 <h2 className="dark:text-white font-bold text-2xl max-sm:text-xl leading-normal mb-4">Información del creador</h2>
                                 <div className="social-networks flex flex-col gap-2">
                                     <div className="discord cursor-pointer flex gap-4 items-cente  bg-neutral-300/50 dark:bg-gray-900/50 p-2 rounded-lg">
@@ -149,7 +149,7 @@ function Home() {
                                             <svg viewBox="0 0 256 199" width="36" height="36" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid"><path d="M216.856 16.597A208.502 208.502 0 0 0 164.042 0c-2.275 4.113-4.933 9.645-6.766 14.046-19.692-2.961-39.203-2.961-58.533 0-1.832-4.4-4.55-9.933-6.846-14.046a207.809 207.809 0 0 0-52.855 16.638C5.618 67.147-3.443 116.4 1.087 164.956c22.169 16.555 43.653 26.612 64.775 33.193A161.094 161.094 0 0 0 79.735 175.3a136.413 136.413 0 0 1-21.846-10.632 108.636 108.636 0 0 0 5.356-4.237c42.122 19.702 87.89 19.702 129.51 0a131.66 131.66 0 0 0 5.355 4.237 136.07 136.07 0 0 1-21.886 10.653c4.006 8.02 8.638 15.67 13.873 22.848 21.142-6.58 42.646-16.637 64.815-33.213 5.316-56.288-9.08-105.09-38.056-148.36ZM85.474 135.095c-12.645 0-23.015-11.805-23.015-26.18s10.149-26.2 23.015-26.2c12.867 0 23.236 11.804 23.015 26.2.02 14.375-10.148 26.18-23.015 26.18Zm85.051 0c-12.645 0-23.014-11.805-23.014-26.18s10.148-26.2 23.014-26.2c12.867 0 23.236 11.804 23.015 26.2 0 14.375-10.148 26.18-23.015 26.18Z" className="fill-purple-600"/></svg>
                                         </div>
                                         <div className="discord-right dark:text-white flex flex-col justify-between">
-                                            <h3 className="font-semibold">Únete a mi comunidad de Discord</h3>
+                                            <h3 className="font-semibold max-sm:text-sm">Únete a mi comunidad de Discord</h3>
                                             <p className="text-slate-400 text-sm">Syntax World</p>
                                         </div>
                                     </div>
@@ -158,7 +158,7 @@ function Home() {
                                             <Linkedin className="text-white dark:text-cyan-500 w-8 h-8" />
                                         </div>
                                         <div className="linkedin-right dark:text-white flex flex-col justify-between">
-                                            <h3 className="font-semibold">LinkedIn</h3>
+                                            <h3 className="font-semibold max-sm:text-sm">LinkedIn</h3>
                                             <p className="text-slate-400 text-sm">@saidre20</p>
                                         </div>
                                     </div>
@@ -167,7 +167,7 @@ function Home() {
                                             <Github className="text-white w-8 h-8"/>
                                         </div>
                                         <div className="github-right dark:text-white flex flex-col justify-between">
-                                            <h3 className="font-semibold">Revisa mis proyectos</h3>
+                                            <h3 className="font-semibold max-sm:text-sm">Revisa mis proyectos</h3>
                                             <p className="text-slate-400 text-sm">@JunLovin</p>
                                         </div>
                                     </div>
@@ -176,7 +176,7 @@ function Home() {
                                             <Youtube className="text-red-500 w-8 h-8" />
                                         </div>
                                         <div className="discord-right dark:text-white flex flex-col justify-between">
-                                            <h3 className="font-semibold">Mira mis videos</h3>
+                                            <h3 className="font-semibold max-sm:text-sm">Mira mis videos</h3>
                                             <p className="text-slate-400 text-sm">@saidr07</p>
                                         </div>
                                     </div>
