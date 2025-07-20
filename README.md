@@ -2,6 +2,11 @@
 
 Login Page es una aplicación de autenticación moderna construida con React, Vite, TailwindCSS y Supabase. Permite a los usuarios registrarse, iniciar sesión y recuperar su cuenta utilizando autenticación tradicional (email/contraseña) y autenticación OAuth con Google.
 
+## Screenshots
+
+![Login](./public/login.png)
+![Dashboard](./public/dashboard.png)
+
 ## Características
 
 - Registro de usuarios con email y contraseña
