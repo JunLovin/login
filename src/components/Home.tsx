@@ -1,8 +1,7 @@
 import { useState, useEffect } from "react"
-import { Bell, Moon, Sun, User, LogOut, Mail, Linkedin, Github, Youtube } from "lucide-react"
+import { Moon, Sun, User, LogOut, Mail, Linkedin, Github, Youtube } from "lucide-react"
 import { createClient } from "@supabase/supabase-js"
 import { useNavigate } from "react-router"
-import Footer from "./Footer"
 import Toast from "./Toast"
 
 function Home() {
@@ -108,14 +107,16 @@ function Home() {
                                     <div className="email flex flex-col gap-2 w-full">
                                         <label htmlFor="email" className="font-semibold text-neutral-500 dark:text-white w-max">Email</label>
                                         <div className="input-email relative w-full">
-                                            <input type="email" name="email" id="email" value={user} className="w-full border dark:border-white/20 border-black/20 outline-0 focus:border-white/20 focus:ring-1 focus:ring-white/20 rounded-md p-2 px-10" />
+                                            <input type="email" name="email" id="email" value={user} onChange={(e) => {
+                                                setEmail(e.target.value)
+                                            }} className="w-full border dark:border-white/20 border-black/20 outline-0 focus:border-white/20 focus:ring-1 focus:ring-white/20 rounded-md p-2 px-10" />
                                             <Mail className="absolute left-2.5 top-[9px]" />
                                         </div>
                                     </div>
                                     <div className="full_name flex flex-col gap-2 w-full relative">
                                         <label htmlFor="full_name" className="font-semibold text-neutral-500 dark:text-white w-max">Nombre</label>
                                         <div className="input-name relative w-full">
-                                            <input type="text" name="full_name" id="full_name" placeholder="Jhon Doe" className="w-full border dark:border-white/20 border-black/20 outline-0 focus:border-white/20 focus:ring-1 focus:ring-white/20 rounded-md p-2 px-10" />
+                                            <input type="text" name="full_name" value={fullName} onChange={e => setFullName(e.target.value)} id="full_name" placeholder="Jhon Doe" className="w-full border dark:border-white/20 border-black/20 outline-0 focus:border-white/20 focus:ring-1 focus:ring-white/20 rounded-md p-2 px-10" />
                                             <User className="absolute left-2.5 top-[9px]" />
                                         </div>
                                     </div>
