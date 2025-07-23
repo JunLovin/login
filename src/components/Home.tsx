@@ -54,13 +54,13 @@ function Home() {
 
     return (
         <>
-            <Toast show={showToast} message={status} onClose={() => setShowToast(false)} type={status && status.startsWith('Error') ? 'error' : 'success'} />
-            <div className="home-container h-dvh relative overflow-hidden w-full">
+            <Toast show={showToast} message={status} onClose={() => setShowToast(false)} type={status && status.startsWith('Error') ? 'error' : 'success'} duration={3} />
+            <div className="home-container min-h-dvh relative overflow-hidden w-full">
                 <div className="ball absolute size-90 dark:bg-yellow-500 bg-yellow-300 top-0 right-0 rounded-full animate-blob transition-all duration-300"></div>
                 <div className="ball absolute size-90 dark:bg-green-500 bg-green-300 bottom-0 right-20 rounded-full animate-blob animation-delay-5000 transition-all duration-300"></div>
                 <div className="ball absolute size-90 dark:bg-pink-500 bg-pink-300 bottom-0 left-40 rounded-full animate-blob animation-delay-2000 transition-all duration-300"></div>
                 <div className="ball absolute size-100 dark:bg-purple-500 bg-purple-300 top-20 left-20 rounded-full animate-blob animation-delay-4000 transition-all duration-300"></div>
-                <div className="overlay backdrop-blur-xl w-full h-dvh flex flex-col">
+                <div className="overlay backdrop-blur-xl w-full min-h-dvh flex flex-col">
                     <div className="header-container">
                         <div className="dashboard-header h-25 flex justify-between px-12 items-center dark:bg-black/15 bg-white/30">
                             <div className="header-left flex gap-4 items-center">
@@ -141,7 +141,7 @@ function Home() {
                                 </div>
                             </div>
                         </div>
-                        <div className="dashboard-content-right flex h-[95%] relative w-[35%] max-lg:w-[65%] max-md:w-[95%] max-sm:w-full">
+                        <div className="dashboard-content-right flex h-179 max-2xl:h-179 relative w-[35%] max-lg:w-[65%] max-md:w-[95%] max-sm:w-full">
                             <div className="creator-info w-full rounded-md h-full bg-white/50 dark:bg-black/30 backdrop-blur-xl p-8 shadow-xl max-xl:h-120">
                                 <h2 className="dark:text-white font-bold text-2xl max-sm:text-xl leading-normal mb-4">Información del creador</h2>
                                 <div className="social-networks flex flex-col gap-2">
