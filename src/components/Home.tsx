@@ -5,16 +5,18 @@ import { useNavigate } from "react-router"
 import Toast from "./Toast"
 
 function Home() {
+    const data = JSON.parse(localStorage.getItem('data')!)
     const [darkMode, setDarkMode] = useState(true)
     const [showToast, setShowToast] = useState(false)
     const [status, setStatus] = useState('')
-    const user = JSON.parse(localStorage.getItem('user') || JSON.stringify('usuario'))
-    const [email, setEmail] = useState(user)
-    const [fullName, setFullName] = useState('')
+    const [email, setEmail] = useState(data.session.user.email)
+    const [fullName, setFullName] = useState(data.session.user.user_metadata.full_name)
     const [avatar, setAvatar] = useState<File | null>(null)
+    const [avatarUrl, setAvatarUrl] = useState('http://placebear.com/250/250')
     const navigate = useNavigate()
     const supabase = createClient(import.meta.env.VITE_SUPABASE_URL as string, import.meta.env.VITE_SUPABASE_ANON_KEY as string)
-    const userEmail = user.includes('@') ? user.split('@')[0] : user
+    const username = fullName.length > 0 ? fullName : 'Usuario'
+
 
     const logOut = async () => {
         const { error } = await supabase.auth.signOut()
@@ -33,19 +35,113 @@ function Home() {
 
     useEffect(() => {
         supabase.auth.getSession().then((res) => {
-            if (res.data.session) {
+            if (res.data) {
                 console.log(res)
                 navigate('/home')
-                localStorage.setItem('user', JSON.stringify(res.data.session.user.email))
-                if (res.data.session.user.user_metadata.avatar_url) {
-                    localStorage.setItem('avatar', JSON.stringify(res.data.session.user.user_metadata.avatar_url))
-                }
-                if (res.data.session.user.user_metadata.full_name) {
-                    localStorage.setItem('full_name', JSON.stringify(res.data.session.user.user_metadata.full_name))
+                localStorage.setItem('data', JSON.stringify(res.data))
+                if (res.data.session?.user.user_metadata.avatar_url) {
+                    localStorage.setItem('avatar', JSON.stringify(res.data.session?.user.user_metadata.avatar_url))
                 }
             }
         })
+        retrieveUserPfp()
     }, [])
+
+    const onUpdateInfoUser = async (newEmail?: string, name?: string) => {
+        const { data, error } = await supabase.auth.updateUser({
+            email: newEmail,
+            data: { full_name: name }
+        })
+        if (error) {
+            console.error(error)
+            setStatus('Error interno, inténtelo de nuevo más tarde.')
+            setShowToast(true)
+            setTimeout(() => {
+                setStatus("")
+                setShowToast(false)
+            }, 5000)
+            return
+        }
+        console.log(data)
+        setStatus('Success! Se ha cambiado la información correctamente')
+        const info = await supabase.auth.getSession()
+        localStorage.setItem('data', JSON.stringify(info.data))
+        return
+    }
+
+    const retrieveUserPfp = async () => {
+        const { data: { user } } = await supabase.auth.getUser()
+
+        if (!user) return
+
+        const { data, error } = await supabase.storage
+            .from('avatars')
+            .download(`${user.id}/avatar.jpg`)
+
+        if (data && !error) {
+            const url = URL.createObjectURL(data)
+            setAvatarUrl(url)
+        }
+    }
+
+    const onUploadPfp = async (pfp: File) => {
+        const { data: { user } } = await supabase.auth.getUser()
+
+        const { data: listBucketItems, error: listError } = await supabase.storage
+            .from('avatars')
+            .list(user?.id, {
+                limit: 50,
+                offset: 0
+            })
+
+        const existingFile = listBucketItems?.find(file => file.name === 'avatar.jpg')
+
+        if (existingFile) {
+            const { data: replaceFile, error } = await supabase.storage
+                .from('avatars')
+                .update(`${user?.id}/avatar.jpg`, pfp)
+
+            if (replaceFile) {
+                setStatus("Success, se ha actualizado la imagen")
+                setShowToast(true)
+                setTimeout(() => {
+                    setStatus("")
+                    setShowToast(false)
+                }, 5000)
+            } else if (error) {
+                console.error(error)
+                setStatus("Error, ha ocurrido un error")
+                setShowToast(true)
+                setTimeout(() => {
+                    setStatus("")
+                    setShowToast(false)
+                }, 5000)
+            }
+            return
+        } else {
+            const { data, error } = await supabase
+                .storage
+                .from('avatars')
+                .upload(`${user?.id}/avatar.jpg`, pfp)
+            if (data) {
+                setStatus("Success, se ha actualizado la imagen")
+                setShowToast(true)
+                setTimeout(() => {
+                    setStatus("")
+                    setShowToast(false)
+                }, 5000)
+            }
+            if (error) {
+                console.error(error)
+                setStatus("Error, ha ocurrido un error")
+                setShowToast(true)
+                setTimeout(() => {
+                    setStatus("")
+                    setShowToast(false)
+                }, 5000)
+            }
+        }
+    }
 
     const makeBlobUrl = (el: File) => {
         return URL.createObjectURL(el)
@@ -54,7 +150,7 @@ function Home() {
 
     return (
         <>
-            <Toast show={showToast} message={status} onClose={() => setShowToast(false)} type={status && status.startsWith('Error') ? 'error' : 'success'} duration={3} />
+            <Toast show={showToast} message={status} onClose={() => setShowToast(false)} type={status && status.startsWith('Error') ? 'error' : 'success'} />
             <div className="home-container min-h-dvh relative overflow-hidden w-full">
                 <div className="ball absolute size-90 dark:bg-yellow-500 bg-yellow-300 top-0 right-0 rounded-full animate-blob transition-all duration-300"></div>
                 <div className="ball absolute size-90 dark:bg-green-500 bg-green-300 bottom-0 right-20 rounded-full animate-blob animation-delay-5000 transition-all duration-300"></div>
@@ -66,16 +162,12 @@ function Home() {
                             <div className="header-left flex gap-4 items-center">
                                 <div className="user-pfp-container">
                                     <div className="bg-gradient-to-r from-indigo-500 rounded-full to-purple-300 text-white stroke-white size-12">
-                                        {JSON.parse(localStorage.getItem('avatar') || JSON.stringify('usuario')) ? (
-                                            <img src={JSON.parse(localStorage.getItem('avatar') || JSON.stringify('http://placebear.com/250/250'))} alt="user avatar" className="w-full h-full rounded-full" />
-                                        ) : (
-                                            <User className="w-full h-full" />
-                                        )}
+                                        <img src={avatarUrl} alt="user avatar" className="w-full h-full rounded-full" />
                                     </div>
                                 </div>
                                 <div className="text flex flex-col gap-2">
                                     <h2 className="dark:text-white font-bold text-2xl text-black max-sm:text-xl">Dashboard</h2>
-                                    <p className="text-slate-400 text-sm max-sm:hidden">Bienvenido de vuelta, {JSON.parse(localStorage.getItem('full_name') || JSON.stringify(userEmail) || JSON.stringify('usuario'))}</p>
+                                    <p className="text-slate-400 text-sm max-sm:hidden">Bienvenido de vuelta, {username}</p>
                                 </div>
                             </div>
                             <div className="header-right">
@@ -107,7 +199,7 @@ function Home() {
                                     <div className="email flex flex-col gap-2 w-full">
                                         <label htmlFor="email" className="font-semibold text-neutral-500 dark:text-white w-max">Email</label>
                                         <div className="input-email relative w-full">
-                                            <input type="email" name="email" id="email" value={user} onChange={(e) => {
+                                            <input type="email" name="email" id="email" value={email} onChange={(e) => {
                                                 setEmail(e.target.value)
                                             }} className="w-full border dark:border-white/20 border-black/20 outline-0 focus:border-white/20 focus:ring-1 focus:ring-white/20 rounded-md p-2 px-10" />
                                             <Mail className="absolute left-2.5 top-[9px]" />
@@ -120,13 +212,13 @@ function Home() {
                                             <User className="absolute left-2.5 top-[9px]" />
                                         </div>
                                     </div>
-                                    <button type="submit" className="bg-gradient-to-r from-blue-500 to-purple-600 rounded-md w-full text-white py-3 cursor-pointer font-semibold">Guardar</button>
+                                    <button type="submit" className="bg-gradient-to-r from-blue-500 to-purple-600 rounded-md w-full text-white py-3 cursor-pointer font-semibold" onClick={() => onUpdateInfoUser(email, fullName)}>Guardar</button>
                                 </form>
                             </div>
                             <div className="edit-avatar w-full h-full bg-white/20 rounded-lg shadow-lg p-8 dark:bg-black/30 backdrop-blur-xl flex justify-evenly gap-4 items-center max-sm:flex-col ">
                                 <div className="edit-avatar-left-preview flex justify-center w-[50%]">
                                     <div className="avatar-preview size-52 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full max-sm:size-35 max-lg:size-45">
-                                        <img src={avatar ? makeBlobUrl(avatar) : JSON.parse(localStorage.getItem('avatar') || JSON.stringify('http://placebear.com/250/250')) } alt="user avatar" className="w-full h-full rounded-full object-cover" />
+                                        <img src={avatar ? makeBlobUrl(avatar!) : avatarUrl} alt="user avatar" className="w-full h-full rounded-full object-cover" />
                                     </div>
                                 </div>
                                 <div className="it-avatar-right-uploads w-full flex justify-center items-center dark:text-white">
@@ -136,7 +228,14 @@ function Home() {
                                             setAvatar(e.target.files?.[0] || null)
                                             console.log(e.target.files)
                                         }} />
-                                        <button type="submit" className="bg-gradient-to-r from-blue-500 to-purple-600 rounded-md w-full text-white py-3 cursor-pointer font-semibold">Guardar</button>
+                                        <button type="submit" className="bg-gradient-to-r from-blue-500 to-purple-600 rounded-md w-full text-white py-3 cursor-pointer font-semibold" onClick={() => {
+                                            if (!avatar) {
+                                                alert("Intente con otra imagen")
+                                                return
+                                            }
+                                            onUploadPfp(avatar)
+                                            retrieveUserPfp()
+                                        }}>Guardar</button>
                                     </div>
                                 </div>
                             </div>
@@ -147,7 +246,7 @@ function Home() {
                                 <div className="social-networks flex flex-col gap-2">
                                     <div className="discord cursor-pointer flex gap-4 items-cente  bg-neutral-300/50 dark:bg-gray-900/50 p-2 rounded-lg">
                                         <div className="discord-left bg-purple-500/50 w-max p-2 rounded-lg border border-purple-900">
-                                            <svg viewBox="0 0 256 199" width="36" height="36" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid"><path d="M216.856 16.597A208.502 208.502 0 0 0 164.042 0c-2.275 4.113-4.933 9.645-6.766 14.046-19.692-2.961-39.203-2.961-58.533 0-1.832-4.4-4.55-9.933-6.846-14.046a207.809 207.809 0 0 0-52.855 16.638C5.618 67.147-3.443 116.4 1.087 164.956c22.169 16.555 43.653 26.612 64.775 33.193A161.094 161.094 0 0 0 79.735 175.3a136.413 136.413 0 0 1-21.846-10.632 108.636 108.636 0 0 0 5.356-4.237c42.122 19.702 87.89 19.702 129.51 0a131.66 131.66 0 0 0 5.355 4.237 136.07 136.07 0 0 1-21.886 10.653c4.006 8.02 8.638 15.67 13.873 22.848 21.142-6.58 42.646-16.637 64.815-33.213 5.316-56.288-9.08-105.09-38.056-148.36ZM85.474 135.095c-12.645 0-23.015-11.805-23.015-26.18s10.149-26.2 23.015-26.2c12.867 0 23.236 11.804 23.015 26.2.02 14.375-10.148 26.18-23.015 26.18Zm85.051 0c-12.645 0-23.014-11.805-23.014-26.18s10.148-26.2 23.014-26.2c12.867 0 23.236 11.804 23.015 26.2 0 14.375-10.148 26.18-23.015 26.18Z" className="fill-purple-600"/></svg>
+                                            <svg viewBox="0 0 256 199" width="36" height="36" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid"><path d="M216.856 16.597A208.502 208.502 0 0 0 164.042 0c-2.275 4.113-4.933 9.645-6.766 14.046-19.692-2.961-39.203-2.961-58.533 0-1.832-4.4-4.55-9.933-6.846-14.046a207.809 207.809 0 0 0-52.855 16.638C5.618 67.147-3.443 116.4 1.087 164.956c22.169 16.555 43.653 26.612 64.775 33.193A161.094 161.094 0 0 0 79.735 175.3a136.413 136.413 0 0 1-21.846-10.632 108.636 108.636 0 0 0 5.356-4.237c42.122 19.702 87.89 19.702 129.51 0a131.66 131.66 0 0 0 5.355 4.237 136.07 136.07 0 0 1-21.886 10.653c4.006 8.02 8.638 15.67 13.873 22.848 21.142-6.58 42.646-16.637 64.815-33.213 5.316-56.288-9.08-105.09-38.056-148.36ZM85.474 135.095c-12.645 0-23.015-11.805-23.015-26.18s10.149-26.2 23.015-26.2c12.867 0 23.236 11.804 23.015 26.2.02 14.375-10.148 26.18-23.015 26.18Zm85.051 0c-12.645 0-23.014-11.805-23.014-26.18s10.148-26.2 23.014-26.2c12.867 0 23.236 11.804 23.015 26.2 0 14.375-10.148 26.18-23.015 26.18Z" className="fill-purple-600" /></svg>
                                         </div>
                                         <div className="discord-right dark:text-white flex flex-col justify-between">
                                             <h3 className="font-semibold max-sm:text-sm">Únete a mi comunidad de Discord</h3>
@@ -165,7 +264,7 @@ function Home() {
                                     </div>
                                     <div className="github cursor-pointer flex gap-4 items-cente  bg-neutral-300/50 dark:bg-gray-900/50 p-2 rounded-lg">
                                         <div className="github-left bg-black/50 w-max p-2 rounded-lg border border-black">
-                                            <Github className="text-white w-8 h-8"/>
+                                            <Github className="text-white w-8 h-8" />
                                         </div>
                                         <div className="github-right dark:text-white flex flex-col justify-between">
                                             <h3 className="font-semibold max-sm:text-sm">Revisa mis proyectos</h3>
@@ -183,7 +282,7 @@ function Home() {
                                     </div>
                                 </div>
                             </div>
-                            <button className="bg-black/80 text-white h-12 w-[80%] left-1/2 -translate-x-1/2 absolute bottom-4 rounded-md cursor-pointer">Ver Repositorio</button>
+                            <button className="bg-black/80 text-white h-12 w-[80%] left-1/2 -translate-x-1/2 absolute bottom-4 rounded-md cursor-pointer" onClick={() => window.open('https://github.com/junlovin/login', '_blank')}>Ver Repositorio</button>
                         </div>
                     </div>
                     <div className="footer-container flex justify-center items-center text-slate-400 text-sm">
