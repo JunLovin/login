@@ -9,7 +9,6 @@ function LoginCard() {
     const [email, setEmail] = useState('')
     const [password, setPassword] = useState('')
     const [showPassword, setShowPassword] = useState(false)
-    const [signInData, setSignInData] = useState<any>(null)
     const [loading, setLoading] = useState(false)
     const [showToast, setShowToast] = useState(false)
     const [status, setStatus] = useState('')
@@ -19,41 +18,29 @@ function LoginCard() {
     const signIn = async () => {
         setLoading(true)
         try {
-            const response = await fetch("http://localhost:3000/login", {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ email: email, password: password })
-            })
-            if (response.ok) {
-                const data = await response.json()
-                setSignInData(data)
-                localStorage.setItem('user', JSON.stringify(data.info.email))
-                if (data.role === "authenticated") {
-                    navigate('/home')
-                }
+            const { data } = await supabase.auth.signInWithPassword({ email: email, password: password })
+            console.log(data)
+            localStorage.setItem('data', JSON.stringify(data))
+            if (data.user?.role === 'authenticated') {
+                navigate('/home')
+                return
             }
-            setStatus('Error al iniciar sesión, datos incorrectos')
-            setShowToast(true)
-            setTimeout(() => {
-                setStatus("")
-                setShowToast(false)
-            }, 2000)
         } catch (error) {
+            console.error(error)
             setStatus('Error al iniciar sesión')
             setShowToast(true)
             setTimeout(() => {
                 setStatus("")
                 setShowToast(false)
             }, 2000)
+            return
         } finally {
             setLoading(false)
         }
     }
 
     const oauth = async () => {
-        const { data, error } = await supabase.auth.signInWithOAuth({
+        const { error } = await supabase.auth.signInWithOAuth({
             provider: 'google',
             options: {
                 redirectTo: 'http://localhost:5173/home'
@@ -117,7 +104,6 @@ function LoginCard() {
                         </div>
                         <div className="button w-full">
                             <button type="submit" className="bg-gradient-to-r from-blue-500 to-purple-600 rounded-md w-full text-white py-3 cursor-pointer font-semibold" onClick={() => {
-                                signIn()
                                 if (!email || !password) {
                                     setStatus('Por favor, completa todos los campos')
                                     setShowToast(true)
@@ -127,6 +113,7 @@ function LoginCard() {
                                     }, 2000)
                                     return
                                 }
+                                signIn()
                             }}>Iniciar Sesión</button>
                         </div>
                         <div className="third-party-auth flex flex-col items-center justify-center w-full gap-4">

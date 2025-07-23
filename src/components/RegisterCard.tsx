@@ -16,21 +16,12 @@ function RegisterCard() {
     const supabase = createClient(import.meta.env.VITE_SUPABASE_URL as string, import.meta.env.VITE_SUPABASE_ANON_KEY as string)
 
     const signUp = async () => {
+
         try {
-            const response = await fetch("http://localhost:3000/signup", {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    email: email,
-                    password: password
-                })
-            })
-            if (response.ok) {
-                const data = await response.json()
-                alert("Se ha enviado un correo de verificación a: " + email)
-                console.log(data)
+            const { data } = await supabase.auth.signUp({ email: email, password: password })
+            if (data) {
+                alert("Se ha enviado un correo de verificación")
+                return
             }
         } catch (error) {
             console.error(error)
