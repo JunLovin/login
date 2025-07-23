@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { Link } from "react-router"
 import { Shield, Mail } from "lucide-react"
 import { createClient } from '@supabase/supabase-js'
