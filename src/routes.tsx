@@ -2,6 +2,7 @@ import App from './App'
 import Home from './components/Home'
 import RecoveryCard from './components/RecoveryCard'
 import RegisterCard from './components/RegisterCard'
+import NewPassword from './components/NewPassword'
 
 const routes = [
     {
@@ -14,7 +15,11 @@ const routes = [
             },
             {
                 path: '/recovery',
-                element: <RecoveryCard />
+                element: <RecoveryCard />,
+            },
+            {
+                path: '/new-password',
+                element: <NewPassword />
             }
         ]
     },
