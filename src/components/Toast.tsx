@@ -1,7 +1,15 @@
 import { useEffect, useRef } from "react";
 import gsap from 'gsap'
 
-const Toast = ({ show, message, duration = 2000, onClose, type = "success" } : { show: boolean, message: string, duration?: number, onClose: any, type: "success" | "error",  }) => {
+type ToastTypes = {
+  show: boolean,
+  message: string,
+  duration?: number,
+  onClose: () => void,
+  type: "success" | "error"
+}
+
+const Toast = ({ show, message, duration = 2000, onClose, type = "success" } : ToastTypes ) => {
   const toastRef = useRef(null);
 
   useEffect(() => {
