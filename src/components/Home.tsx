@@ -1,12 +1,13 @@
 import { useState, useEffect } from "react"
-import { Moon, Sun, User, LogOut, Mail, Linkedin, Github, Youtube } from "lucide-react"
-import { createClient } from "@supabase/supabase-js"
+import { User, Mail, Linkedin, Github, Youtube } from "lucide-react"
+import { supabase } from "../utils/utils"
 import { useNavigate } from "react-router"
 import Toast from "./Toast"
+import Background from "./Background"
+import Header from "./Header"
 
 function Home() {
     const data = JSON.parse(localStorage.getItem('data')!)
-    const [darkMode, setDarkMode] = useState(true)
     const [showToast, setShowToast] = useState(false)
     const [status, setStatus] = useState('')
     const [email, setEmail] = useState(data.session.user.email)
@@ -14,8 +15,7 @@ function Home() {
     const [avatar, setAvatar] = useState<File | null>(null)
     const [avatarUrl, setAvatarUrl] = useState('http://placebear.com/250/250')
     const navigate = useNavigate()
-    const supabase = createClient(import.meta.env.VITE_SUPABASE_URL as string, import.meta.env.VITE_SUPABASE_ANON_KEY as string)
-    const username = fullName.length > 0 ? fullName : 'Usuario'
+    const username = fullName?.length > 0 ? fullName : 'Usuario'
 
 
     const logOut = async () => {
@@ -36,7 +36,6 @@ function Home() {
     useEffect(() => {
         supabase.auth.getSession().then((res) => {
             if (res.data) {
-                console.log(res)
                 navigate('/home')
                 localStorage.setItem('data', JSON.stringify(res.data))
                 if (res.data.session?.user.user_metadata.avatar_url) {
@@ -87,7 +86,7 @@ function Home() {
     const onUploadPfp = async (pfp: File) => {
         const { data: { user } } = await supabase.auth.getUser()
 
-        const { data: listBucketItems, error: listError } = await supabase.storage
+        const { data: listBucketItems } = await supabase.storage
             .from('avatars')
             .list(user?.id, {
                 limit: 50,
@@ -152,45 +151,9 @@ function Home() {
         <>
             <Toast show={showToast} message={status} onClose={() => setShowToast(false)} type={status && status.startsWith('Error') ? 'error' : 'success'} />
             <div className="home-container min-h-dvh relative overflow-hidden w-full">
-                <div className="ball absolute size-90 dark:bg-yellow-500 bg-yellow-300 top-0 right-0 rounded-full animate-blob transition-all duration-300"></div>
-                <div className="ball absolute size-90 dark:bg-green-500 bg-green-300 bottom-0 right-20 rounded-full animate-blob animation-delay-5000 transition-all duration-300"></div>
-                <div className="ball absolute size-90 dark:bg-pink-500 bg-pink-300 bottom-0 left-40 rounded-full animate-blob animation-delay-2000 transition-all duration-300"></div>
-                <div className="ball absolute size-100 dark:bg-purple-500 bg-purple-300 top-20 left-20 rounded-full animate-blob animation-delay-4000 transition-all duration-300"></div>
+                <Background />
                 <div className="overlay backdrop-blur-xl w-full min-h-dvh flex flex-col">
-                    <div className="header-container">
-                        <div className="dashboard-header h-25 flex justify-between px-12 items-center dark:bg-black/15 bg-white/30">
-                            <div className="header-left flex gap-4 items-center">
-                                <div className="user-pfp-container">
-                                    <div className="bg-gradient-to-r from-indigo-500 rounded-full to-purple-300 text-white stroke-white size-12">
-                                        <img src={avatarUrl} alt="user avatar" className="w-full h-full rounded-full" />
-                                    </div>
-                                </div>
-                                <div className="text flex flex-col gap-2">
-                                    <h2 className="dark:text-white font-bold text-2xl text-black max-sm:text-xl">Dashboard</h2>
-                                    <p className="text-slate-400 text-sm max-sm:hidden">Bienvenido de vuelta, {username}</p>
-                                </div>
-                            </div>
-                            <div className="header-right">
-                                <ul className="flex gap-4">
-                                    <button className="cursor-pointer p-2 bg-white/50 hover:bg-white/40 dark:bg-neutral-800/50 dark:hover:bg-neutral-700/50 transition-all duration-200 w-max h-max rounded-md" onClick={() => {
-                                        setDarkMode(!darkMode)
-                                        document.body.classList.toggle('dark')
-                                    }}>
-                                        {!darkMode ? (
-                                            <Moon className="stroke-purple-500 p-0.5" />
-                                        ) : (
-                                            <Sun className="stroke-yellow-500 p-0.5" />
-                                        )}
-                                    </button>
-                                    <button className="cursor-pointer p-2 bg-white/50 hover:bg-white/40 dark:bg-neutral-800/50 dark:hover:bg-neutral-700/50 transition-all duration-200 w-max h-max rounded-md dark:text-white text-black" onClick={() => {
-                                        logOut()
-                                    }}>
-                                        <LogOut />
-                                    </button>
-                                </ul>
-                            </div>
-                        </div>
-                    </div>
+                    <Header dashboard={true} avatarUrl={avatarUrl} logOut={logOut} username={username} />
                     <div className="main-container flex-1 w-full flex gap-8 justify-evenly items-center px-8 max-xl:flex-col max-xl:py-8 max-xl:overflow-y-scroll">
                         <div className="dashboard-content-left grid justify-items-center items-center grid-rows-2 gap-6 w-[65%] max-sm:w-full py-5">
                             <div className="edit-profile w-full h-full bg-white/20 rounded-lg shadow-lg p-8 dark:bg-black/30 backdrop-blur-xl flex flex-col justify-center gap-4">
@@ -230,7 +193,12 @@ function Home() {
                                         }} />
                                         <button type="submit" className="bg-gradient-to-r from-blue-500 to-purple-600 rounded-md w-full text-white py-3 cursor-pointer font-semibold" onClick={() => {
                                             if (!avatar) {
-                                                alert("Intente con otra imagen")
+                                                setStatus('Error, intente con otra imagen')
+                                                setShowToast(true)
+                                                setTimeout(() => {
+                                                    setStatus("")
+                                                    setShowToast(false)
+                                                }, 2000)
                                                 return
                                             }
                                             onUploadPfp(avatar)
