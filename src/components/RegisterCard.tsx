@@ -1,7 +1,8 @@
 import { useState, useRef } from 'react'
 import { Link } from "react-router"
-import { Lock, Mail, Eye, User } from "lucide-react"
-import { createClient } from '@supabase/supabase-js'
+import { Lock, Mail, Eye, EyeClosed, User } from "lucide-react"
+import Toast from './Toast'
+import { supabase } from '../utils/utils'
 
 function RegisterCard() {
     const [name, setName] = useState('')
@@ -11,18 +12,34 @@ function RegisterCard() {
     const [passwordRepeated, setPasswordRepeated] = useState('')
     const [showPassword, setShowPassword] = useState(false)
     const [showPasswordRepeated, setShowPasswordRepeated] = useState(false)
+    const [status, setStatus] = useState('')
+    const [showToast, setShowToast] = useState(false)
     const passwordRef = useRef<HTMLInputElement>(null)
     const passwordRepeatedRef = useRef<HTMLInputElement>(null)
-    const supabase = createClient(import.meta.env.VITE_SUPABASE_URL as string, import.meta.env.VITE_SUPABASE_ANON_KEY as string)
 
     const signUp = async () => {
-
         try {
-            const { data } = await supabase.auth.signUp({ email: email, password: password })
-            if (data) {
-                alert("Se ha enviado un correo de verificación")
+            const { data, error } = await supabase.auth.signUp({
+                email: email, password: password, options: {
+                    data: {
+                        full_name: `${name} ${lastname}`
+                    }
+                }
+            })
+            if (error) {
+                setStatus('Error al iniciar sesión')
+                setShowToast(true)
+                setTimeout(() => {
+                    setStatus("")
+                    setShowToast(false)
+                }, 2000)
                 return
             }
+            setStatus('Success, se ha enviado un correo de verificación')
+            setTimeout(() => {
+                setStatus("")
+                setShowToast(false)
+            }, 2000)
         } catch (error) {
             console.error(error)
             return
@@ -30,19 +47,32 @@ function RegisterCard() {
     }
 
     const oauth = async () => {
-        const { data, error } = await supabase.auth.signInWithOAuth({
+        const { error } = await supabase.auth.signInWithOAuth({
             provider: 'google',
             options: {
                 redirectTo: 'http://localhost:5173/'
+
             }
         })
-
-        if (error) alert(error)
-        if (data) console.log("Redirigiendo para inicio de sesión con google... " + data)
+        supabase.auth.getSession().then(res => {
+            if (res.data) {
+                console.log(res.data)
+            }
+        })
+        if (error) {
+            setStatus('Error al iniciar sesión')
+            setShowToast(true)
+            setTimeout(() => {
+                setStatus("")
+                setShowToast(false)
+            }, 2000)
+            return
+        }
     }
 
     return (
         <>
+            <Toast show={showToast} message={status} onClose={() => setShowToast(false)} type={status && status.startsWith('Error') ? 'error' : 'success'} />
             <div className="login-card w-lg max-2xl:py-8 max-md:w-md dark:bg-black/20 rounded-xl p-8 h-max py-16 shadow-2xl border-white/30 dark:border-white/10 bg-white/20 transition-all duration-300 max-2xl:my-8">
                 <div className="card-top flex flex-col items-center justify-center">
                     <div className="card-icon flex flex-col items-center justify-center">
@@ -84,9 +114,12 @@ function RegisterCard() {
                             <div className="input-pass flex relative">
                                 <Lock className="absolute left-3 bottom-[9px]" />
                                 <input ref={passwordRef} type={showPassword ? 'text' : 'password'} id="password" name="password" className="w-full dark:bg-black/40 pl-12 pr-4 py-2 rounded-md border dark:border-gray-800 outline-0 focus:border-blue-400 dark:focus:border-blue-400 transition-all duration-300 bg-white/40 border-white/10" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="********" />
-                                <Eye className="absolute right-3 bottom-[9px] cursor-pointer" onClick={() => {
-                                    setShowPassword(!showPassword)
-                                }} />
+                                {showPassword && <EyeClosed className="absolute right-3 bottom-[9px] cursor-pointer" onClick={() => {
+                                    setShowPassword(false)
+                                }} />}
+                                {!showPassword && <Eye className="absolute right-3 bottom-[9px] cursor-pointer" onClick={() => {
+                                    setShowPassword(true)
+                                }} />}
                             </div>
                         </div>
                         <div className="pass w-full flex flex-col gap-2">
@@ -94,9 +127,12 @@ function RegisterCard() {
                             <div className="input-pass flex relative">
                                 <Lock className="absolute left-3 bottom-[9px]" />
                                 <input ref={passwordRepeatedRef} type={showPasswordRepeated ? 'text' : 'password'} id="password-repeat" name="password-repeat" className="w-full dark:bg-black/40 pl-12 pr-4 py-2 rounded-md border dark:border-gray-800 outline-0 focus:border-blue-400 dark:focus:border-blue-400 transition-all duration-300 bg-white/40 border-white/10" value={passwordRepeated} onChange={(e) => setPasswordRepeated(e.target.value)} placeholder="********" />
-                                <Eye className="absolute right-3 bottom-[9px] cursor-pointer" onClick={() => {
-                                    setShowPasswordRepeated(!showPasswordRepeated)
-                                }} />
+                                {showPasswordRepeated && <EyeClosed className="absolute right-3 bottom-[9px] cursor-pointer" onClick={() => {
+                                    setShowPasswordRepeated(false)
+                                }} />}
+                                {!showPasswordRepeated && <Eye className="absolute right-3 bottom-[9px] cursor-pointer" onClick={() => {
+                                    setShowPasswordRepeated(true)
+                                }} />}
                             </div>
                         </div>
                         <div className="options flex justify-between text-sm max-sm:text-xs">
@@ -107,9 +143,13 @@ function RegisterCard() {
                         </div>
                         <div className="button w-full">
                             <button type="submit" className="bg-gradient-to-r from-green-500 to-blue-600 rounded-md w-full text-white py-3 cursor-pointer font-semibold" onClick={async () => {
-                                if (password !== passwordRepeated && passwordRef.current && passwordRepeatedRef.current) {
-                                    passwordRef.current.style.borderColor = "red"
-                                    passwordRepeatedRef.current.style.borderColor = "red"
+                                if (!password || !passwordRepeated || !email || password !== passwordRepeated) {
+                                    setStatus('Error, por favor revisa todos los campos')
+                                    setShowToast(true)
+                                    setTimeout(() => {
+                                        setStatus("")
+                                        setShowToast(false)
+                                    }, 2000)
                                     return
                                 }
                                 await signUp()
