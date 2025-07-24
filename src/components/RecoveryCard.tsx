@@ -1,28 +1,39 @@
 import { useState } from 'react'
 import { Link } from "react-router"
 import { Shield, Mail } from "lucide-react"
-import { createClient } from '@supabase/supabase-js'
+import { supabase } from '../utils/utils'
+import Toast from './Toast'
 
 function RecoveryCard() {
     const [email, setEmail] = useState('')
-    const supabase = createClient(import.meta.env.VITE_SUPABASE_URL as string, import.meta.env.VITE_SUPABASE_ANON_KEY as string)
+    const [showToast, setShowToast] = useState(false)
+    const [status, setStatus] = useState('')
 
     const sendRecoveryEmail = async () => {
-        const { data, error } = await supabase.auth.resetPasswordForEmail(email)
-        if (error) console.error(error)
-        if (data) console.log(data)
-        supabase.auth.onAuthStateChange(async (event, session) => {
-            if (event === 'PASSWORD_RECOVERY') {
-                const newPassword = prompt("Ingresa tu nueva contraseña: ")
-                const { data, error } = await supabase.auth.updateUser({ password: newPassword! })
-                if (error) console.log(error)
-                if (data) alert("Contraseña actualizada correctamente!")
-            }
+        const { error } = await supabase.auth.resetPasswordForEmail(email, {
+            redirectTo: "http://localhost:5173/new-password"
         })
+        if (error) {
+            console.error(error)
+            setStatus('Error, ha ocurrido un error enviando el correo.')
+            setShowToast(true)
+            setTimeout(() => {
+                setStatus("")
+                setShowToast(false)
+            }, 2000)
+            return
+        }
+        setStatus('Success, se ha enviado un correo de recuperación.')
+        setShowToast(true)
+        setTimeout(() => {
+            setStatus("")
+            setShowToast(false)
+        }, 2000)
     }
 
     return (
         <>
+            <Toast show={showToast} message={status} onClose={() => setShowToast(false)} type={status && status.startsWith('Error') ? 'error' : 'success'} />
             <div className="login-card w-lg max-2xl:py-8 max-md:w-md dark:bg-black/20 rounded-xl p-8 h-max py-16 shadow-2xl border-white/30 dark:border-white/10 bg-white/20 transition-all duration-300">
                 <div className="card-top flex flex-col items-center justify-center">
                     <div className="card-icon flex flex-col items-center justify-center">
