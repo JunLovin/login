@@ -1,8 +1,8 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link, useNavigate } from "react-router"
-import { Lock, Mail, Eye } from "lucide-react"
+import { Lock, Mail, Eye, EyeClosed } from "lucide-react"
+import { supabase } from '../utils/utils'
 import Loading from './Loading'
-import { createClient } from '@supabase/supabase-js'
 import Toast from './Toast'
 
 function LoginCard() {
@@ -13,17 +13,24 @@ function LoginCard() {
     const [showToast, setShowToast] = useState(false)
     const [status, setStatus] = useState('')
     const navigate = useNavigate()
-    const supabase = createClient(import.meta.env.VITE_SUPABASE_URL as string, import.meta.env.VITE_SUPABASE_ANON_KEY as string)
 
     const signIn = async () => {
         setLoading(true)
         try {
-            const { data } = await supabase.auth.signInWithPassword({ email: email, password: password })
+            const { data, error } = await supabase.auth.signInWithPassword({ email: email, password: password })
             console.log(data)
             localStorage.setItem('data', JSON.stringify(data))
             if (data.user?.role === 'authenticated') {
                 navigate('/home')
                 return
+            }
+            if (error) {
+                setStatus('Error al iniciar sesión')
+                setShowToast(true)
+                setTimeout(() => {
+                    setStatus("")
+                    setShowToast(false)
+                }, 2000)
             }
         } catch (error) {
             console.error(error)
@@ -43,7 +50,13 @@ function LoginCard() {
         const { error } = await supabase.auth.signInWithOAuth({
             provider: 'google',
             options: {
-                redirectTo: 'http://localhost:5173/home'
+                redirectTo: 'http://localhost:5173/'
+
+            }
+        })
+        supabase.auth.getSession().then(res => {
+            if (res.data) {
+                console.log(res.data)
             }
         })
         if (error) {
@@ -56,6 +69,18 @@ function LoginCard() {
             return
         }
     }
+
+    useEffect(() => {
+        supabase.auth.getSession().then(res => {
+            if (res.data.session !== null) {
+                localStorage.setItem('data', JSON.stringify(res.data))
+                console.log(res.data)
+                setTimeout(() => {
+                    navigate('/home')
+                }, 3000)
+            }
+        })
+    }, [])
 
     if (loading) return <Loading />
 
@@ -88,9 +113,12 @@ function LoginCard() {
                             <div className="input-pass flex relative">
                                 <Lock className="absolute left-3 bottom-[9px]" />
                                 <input type={showPassword ? 'text' : 'password'} id="password" name="password" className="w-full dark:bg-black/40 pl-12 pr-4 py-2 rounded-md border dark:border-gray-800 outline-0 focus:border-blue-400 dark:focus:border-blue-400 transition-all duration-300 bg-white/40 border-white/10" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="********" />
-                                <Eye className="absolute right-3 bottom-[9px] cursor-pointer" onClick={() => {
-                                    setShowPassword(!showPassword)
-                                }} />
+                                {showPassword && <EyeClosed className="absolute right-3 bottom-[9px] cursor-pointer" onClick={() => {
+                                    setShowPassword(false)
+                                }} />}
+                                {!showPassword && <Eye className="absolute right-3 bottom-[9px] cursor-pointer" onClick={() => {
+                                    setShowPassword(true)
+                                }} />}
                             </div>
                         </div>
                         <div className="options flex justify-between text-sm max-sm:text-xs">
