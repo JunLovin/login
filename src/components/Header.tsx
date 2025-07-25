@@ -34,7 +34,7 @@ function Header({ dashboard = false, avatarUrl, username, logOut, }: Header) {
                         <div className="header-left flex gap-4 items-center">
                             <div className="user-pfp-container">
                                 <div className="bg-gradient-to-r from-indigo-500 rounded-full to-purple-300 text-white stroke-white size-12">
-                                    <img src={avatarUrl} alt="user avatar" className="w-full h-full rounded-full" />
+                                    <img src={avatarUrl} alt="user avatar" className="w-full h-full rounded-full object-cover" />
                                 </div>
                             </div>
                             <div className="text flex flex-col gap-2">

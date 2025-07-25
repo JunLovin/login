@@ -1,7 +1,7 @@
 import Background from './components/Background'
 import Footer from './components/Footer'
 import Header from './components/Header'
-import LoginCard from './components/LoginCard'
+import LoginCard from './pages/LoginCard'
 import { Outlet, useLocation } from 'react-router'
 
 function App() {
@@ -10,25 +10,25 @@ function App() {
 
   return (
     <>
-      <main className="w-full min-h-dvh overflow-hidden flex flex-col relative">
-        <Background />
-        <div className="overlay backdrop-blur-xl w-full min-h-dvh flex flex-col">
-          <section className="header-container">
-            <Header dashboard={false} />
-          </section>
-          <section className="main-container w-full min-h-dvh flex justify-center items-center max-sm:px-4">
-            {home ? (
-              <LoginCard />
-            ) : (
-              <Outlet/>
-            )}
-          </section>
-          <section className="footer-container">
-            <Footer />
-          </section>
-        </div>
-      </main>
-      <style>{`
+        <main className="w-full min-h-dvh overflow-hidden flex flex-col relative">
+          <Background />
+          <div className="overlay backdrop-blur-xl w-full min-h-dvh flex flex-col">
+            <section className="header-container">
+              <Header dashboard={false} />
+            </section>
+            <section className="main-container w-full h-[96dvh] flex justify-center items-center max-sm:px-4">
+              {home ? (
+                <LoginCard />
+              ) : (
+                <Outlet />
+              )}
+            </section>
+            <section className="footer-container">
+              <Footer />
+            </section>
+          </div>
+        </main>
+        <style>{`
         @keyframes blob {
           0% {
             transform: translate(0px, 0px) scale(1);

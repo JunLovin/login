@@ -6,7 +6,7 @@ type ToastTypes = {
   message: string,
   duration?: number,
   onClose: () => void,
-  type: "success" | "error"
+  type: "success" | "error" | unknown
 }
 
 const Toast = ({ show, message, duration = 2000, onClose, type = "success" } : ToastTypes ) => {
