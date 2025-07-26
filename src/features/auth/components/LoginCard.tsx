@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate } from "react-router"
 import { Lock, Mail, Eye, EyeClosed } from "lucide-react"
-import { supabase } from '../utils/utils'
-import Loading from '../components/Loading'
-import Toast from '../components/Toast'
-import { useLoading } from '../hooks/useLoading'
+import { supabase } from '@/services/supabaseClient'
+import Loading from '@/components/Loading'
+import Toast from '@/components/Toast'
+import { useLoading } from '@/hooks/useLoading'
 
 function LoginCard() {
     const [email, setEmail] = useState('')

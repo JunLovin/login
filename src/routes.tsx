@@ -1,8 +1,8 @@
-import App from './App'
-import Home from './pages/Home'
-import RecoveryCard from './pages/RecoveryCard'
-import RegisterCard from './pages/RegisterCard'
-import NewPassword from './pages/NewPassword'
+import App from '@/App'
+import Home from '@/features/dashboard/components/Home'
+import RecoveryCard from '@/features/auth/components/RecoveryCard'
+import RegisterCard from '@/features/auth/components/RegisterCard'
+import NewPassword from '@/features/auth/components/NewPassword'
 
 const routes = [
     {

@@ -1,15 +1,15 @@
 import { useState, useEffect, useRef } from "react"
 import { User, Mail } from "lucide-react"
-import { supabase } from "../utils/utils"
+import { supabase } from "@/services/supabaseClient"
 import { useNavigate } from "react-router"
 import { motion } from "framer-motion"
-import { useToast } from "../hooks/useToast"
-import { useLoading } from "../hooks/useLoading"
-import Background from "../components/Background"
-import Header from "../components/Header"
-import CreatorInfo from "../components/CreatorInfo"
-import Footer from "../components/Footer"
-import Loading from "../components/Loading"
+import { useToast } from "@/hooks/useToast"
+import { useLoading } from "@/hooks/useLoading"
+import Background from "@/components/Background"
+import Header from "@/components/Header"
+import CreatorInfo from "@/components/CreatorInfo"
+import Footer from "@/components/Footer"
+import Loading from "@/components/Loading"
 
 function Home() {
     const { showToastMessage } = useToast()

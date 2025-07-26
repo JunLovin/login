@@ -1,10 +1,10 @@
 import { useState, useRef } from 'react'
 import { Link } from "react-router"
 import { Lock, Mail, Eye, EyeClosed, User } from "lucide-react"
-import { supabase } from '../utils/utils'
-import { useToast } from '../hooks/useToast'
-import { useLoading } from '../hooks/useLoading'
-import Loading from '../components/Loading'
+import { supabase } from '@/services/supabaseClient'
+import { useToast } from '@/hooks/useToast'
+import { useLoading } from '@/hooks/useLoading'
+import Loading from '@/components/Loading'
 
 function RegisterCard() {
     const [name, setName] = useState('')

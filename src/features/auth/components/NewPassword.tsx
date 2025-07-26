@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react'
 import { Eye, EyeClosed, Lock } from "lucide-react"
 import { Link, useNavigate } from "react-router"
-import { supabase } from '../utils/utils'
-import { useToast } from '../hooks/useToast'
-import { useLoading } from '../hooks/useLoading'
-import Loading from '../components/Loading'
+import { supabase } from '@/services/supabaseClient'
+import { useToast } from '@/hooks/useToast'
+import { useLoading } from '@/hooks/useLoading'
+import Loading from '@/components/Loading'
 
 function NewPassword() {
     const [showPassword, setShowPassword] = useState(false)

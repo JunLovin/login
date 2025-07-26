@@ -1,7 +1,7 @@
-import Background from './components/Background'
-import Footer from './components/Footer'
-import Header from './components/Header'
-import LoginCard from './pages/LoginCard'
+import Background from '@/components/Background'
+import Footer from '@/components/Footer'
+import Header from '@/components/Header'
+import LoginCard from '@/features/auth/components/LoginCard'
 import { Outlet, useLocation } from 'react-router'
 
 function App() {

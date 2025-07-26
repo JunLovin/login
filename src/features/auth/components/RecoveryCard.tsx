@@ -1,8 +1,8 @@
 import { useState } from 'react'
 import { Link } from "react-router"
 import { Shield, Mail } from "lucide-react"
-import { supabase } from '../utils/utils'
-import { useToast } from '../hooks/useToast'
+import { supabase } from '@/services/supabaseClient'
+import { useToast } from '@/hooks/useToast'
 
 function RecoveryCard() {
     const { showToastMessage } = useToast()

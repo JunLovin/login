@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion'
-import { creatorSocials } from '../utils/utils'
+import { creatorSocials } from '@/utils/utils'
 import SocialLink from './SocialLink'
 
 function CreatorInfo() {

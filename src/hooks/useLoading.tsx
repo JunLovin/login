@@ -1,5 +1,5 @@
 import React, { useContext, createContext, useState, type SetStateAction, type Dispatch, type ReactNode } from 'react'
-import Loading from '../components/Loading'
+import Loading from '@/components/Loading'
 
 const LoadingContext = createContext<{ loading: boolean, setLoading: Dispatch<SetStateAction<boolean>>} | null>(null)
 
