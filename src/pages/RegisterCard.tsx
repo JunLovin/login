@@ -3,6 +3,8 @@ import { Link } from "react-router"
 import { Lock, Mail, Eye, EyeClosed, User } from "lucide-react"
 import { supabase } from '../utils/utils'
 import { useToast } from '../hooks/useToast'
+import { useLoading } from '../hooks/useLoading'
+import Loading from '../components/Loading'
 
 function RegisterCard() {
     const [name, setName] = useState('')
@@ -15,8 +17,10 @@ function RegisterCard() {
     const passwordRef = useRef<HTMLInputElement>(null)
     const passwordRepeatedRef = useRef<HTMLInputElement>(null)
     const { showToastMessage } = useToast()
+    const { loading, setLoading } = useLoading()
 
     const signUp = async () => {
+        setLoading(true)
         try {
             const { error } = await supabase.auth.signUp({
                 email: email, password: password, options: {
@@ -26,15 +30,21 @@ function RegisterCard() {
                 }
             })
             if (error) {
+                setLoading(false)
                 showToastMessage('Error al iniciar sesión', 'error')
                 return
             }
+            setLoading(false)
             showToastMessage('Se ha enviado un correo de verificación')
         } catch (error) {
             console.error(error)
             return
+        } finally {
+            setLoading(false)
         }
     }
+
+    if (loading) return <Loading />
 
     const oauth = async () => {
         const { error } = await supabase.auth.signInWithOAuth({

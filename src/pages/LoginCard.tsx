@@ -4,15 +4,16 @@ import { Lock, Mail, Eye, EyeClosed } from "lucide-react"
 import { supabase } from '../utils/utils'
 import Loading from '../components/Loading'
 import Toast from '../components/Toast'
+import { useLoading } from '../hooks/useLoading'
 
 function LoginCard() {
     const [email, setEmail] = useState('')
     const [password, setPassword] = useState('')
     const [showPassword, setShowPassword] = useState(false)
-    const [loading, setLoading] = useState(false)
     const [showToast, setShowToast] = useState(false)
     const [status, setStatus] = useState('')
     const navigate = useNavigate()
+    const { loading, setLoading } = useLoading()
 
     const signIn = async () => {
         setLoading(true)

@@ -17,7 +17,7 @@ function RecoveryCard() {
             showToastMessage('Ha ocurrido un error enviando el correo', 'error')
             return
         }
-        showToastMessage("Se ha enviado un correo de recuperación", 'error')
+        showToastMessage("Se ha enviado un correo de recuperación", 'success')
     }
 
     return (

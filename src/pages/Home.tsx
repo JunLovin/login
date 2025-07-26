@@ -1,16 +1,18 @@
 import { useState, useEffect, useRef } from "react"
-import { User, Mail} from "lucide-react"
+import { User, Mail } from "lucide-react"
 import { supabase } from "../utils/utils"
 import { useNavigate } from "react-router"
 import { motion } from "framer-motion"
 import { useToast } from "../hooks/useToast"
+import { useLoading } from "../hooks/useLoading"
 import Background from "../components/Background"
 import Header from "../components/Header"
 import CreatorInfo from "../components/CreatorInfo"
 import Footer from "../components/Footer"
+import Loading from "../components/Loading"
 
 function Home() {
-    const {showToastMessage} = useToast()
+    const { showToastMessage } = useToast()
     const data = JSON.parse(localStorage.getItem('data')!)
     const [email, setEmail] = useState(data.session.user.email)
     const [fullName, setFullName] = useState(data.session.user.user_metadata.full_name)
@@ -19,16 +21,26 @@ function Home() {
     const avatarInputRef = useRef<HTMLInputElement>(null)
     const navigate = useNavigate()
     const username = fullName?.length > 0 ? fullName : 'Usuario'
+    const { loading, setLoading } = useLoading()
 
 
     const logOut = async () => {
-        const { error } = await supabase.auth.signOut()
-        if (error) {
+        setLoading(true)
+        try {
+            const { error } = await supabase.auth.signOut()
+            if (error) {
+                setLoading(false)
+                showToastMessage('Error al cerrar sesión', 'error')
+                return
+            }
+            localStorage.clear()
+            navigate('/')
+        } catch (error) {
+            console.error(error)
             showToastMessage('Error al cerrar sesión', 'error')
-            return
+        } finally {
+            setLoading(false)
         }
-        localStorage.clear()
-        navigate('/')
     }
 
     useEffect(() => {
@@ -45,19 +57,29 @@ function Home() {
     }, [])
 
     const onUpdateInfoUser = async (newEmail?: string, name?: string) => {
-        const { error } = await supabase.auth.updateUser({
-            email: newEmail,
-            data: { full_name: name }
-        })
-        if (error) {
-            console.error(error)
-            showToastMessage('Error interno, inténtelo de nuevo más tarde.', 'error')
+        setLoading(true)
+        try {
+            const { error } = await supabase.auth.updateUser({
+                email: newEmail,
+                data: { full_name: name }
+            })
+            if (error) {
+                setLoading(false)
+                console.error(error)
+                showToastMessage('Error interno, inténtelo de nuevo más tarde.', 'error')
+                return
+            }
+            setLoading(false)
+            showToastMessage('Se ha cambiado la información correctamente.', 'success')
+            const info = await supabase.auth.getSession()
+            localStorage.setItem('data', JSON.stringify(info.data))
             return
+        } catch (error) {
+            console.error(error)
+            return
+        } finally {
+            setLoading(false)
         }
-        showToastMessage('Se ha cambiado la información correctamente.', 'success')
-        const info = await supabase.auth.getSession()
-        localStorage.setItem('data', JSON.stringify(info.data))
-        return
     }
 
     const retrieveUserPfp = async () => {
@@ -76,41 +98,53 @@ function Home() {
     }
 
     const onUploadPfp = async (pfp: File) => {
-        const { data: { user } } = await supabase.auth.getUser()
+        setLoading(true)
+        try {
+            const { data: { user } } = await supabase.auth.getUser()
 
-        const { data: listBucketItems } = await supabase.storage
-            .from('avatars')
-            .list(user?.id, {
-                limit: 50,
-                offset: 0
-            })
-
-        const existingFile = listBucketItems?.find(file => file.name === 'avatar.jpg')
-
-        if (existingFile) {
-            const { data: replaceFile, error } = await supabase.storage
+            const { data: listBucketItems } = await supabase.storage
                 .from('avatars')
-                .update(`${user?.id}/avatar.jpg`, pfp)
+                .list(user?.id, {
+                    limit: 50,
+                    offset: 0
+                })
 
-            if (replaceFile) {
-                showToastMessage('Se ha actualizado la imagen', 'success')
-            } else if (error) {
-                console.error(error)
-                showToastMessage('Error, ha ocurrido un error', 'error')
+            const existingFile = listBucketItems?.find(file => file.name === 'avatar.jpg')
+
+            if (existingFile) {
+                const { data: replaceFile, error } = await supabase.storage
+                    .from('avatars')
+                    .update(`${user?.id}/avatar.jpg`, pfp)
+
+                if (replaceFile) {
+                    setLoading(false)
+                    showToastMessage('Se ha actualizado la imagen', 'success')
+                } else if (error) {
+                    setLoading(false)
+                    console.error(error)
+                    showToastMessage('Error, ha ocurrido un error', 'error')
+                }
+                return
+            } else {
+                const { data, error } = await supabase
+                    .storage
+                    .from('avatars')
+                    .upload(`${user?.id}/avatar.jpg`, pfp)
+                if (data) {
+                    setLoading(false)
+                    showToastMessage('Se ha actualizado la imagen', 'success')
+                }
+                if (error) {
+                    setLoading(false)
+                    console.error(error)
+                    showToastMessage('Error, ha ocurrido un error', 'error')
+                }
             }
+        } catch (error) {
+            console.error(error)
             return
-        } else {
-            const { data, error } = await supabase
-                .storage
-                .from('avatars')
-                .upload(`${user?.id}/avatar.jpg`, pfp)
-            if (data) {
-                showToastMessage('Se ha actualizado la imagen', 'success')
-            }
-            if (error) {
-                console.error(error)
-                showToastMessage('Error, ha ocurrido un error', 'error')
-            }
+        } finally {
+            setLoading(false)
         }
     }
 
@@ -118,6 +152,7 @@ function Home() {
         return URL.createObjectURL(el)
     }
 
+    if (loading) return <Loading />
 
     return (
         <>
@@ -126,15 +161,15 @@ function Home() {
                 <div className="overlay backdrop-blur-xl w-full min-h-dvh flex flex-col">
                     <Header dashboard={true} avatarUrl={avatarUrl} logOut={logOut} username={username} />
                     <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    className="main-container flex-1 w-full flex gap-8 justify-evenly items-center px-8 max-xl:flex-col max-xl:py-8 max-xl:overflow-y-scroll"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        className="main-container flex-1 w-full flex gap-8 justify-evenly items-center px-8 max-xl:flex-col max-xl:py-8 max-xl:overflow-y-scroll"
                     >
                         <div className="dashboard-content-left grid justify-items-center items-center grid-rows-2 gap-6 w-[65%] max-sm:w-full py-5">
                             <motion.div
-                            initial={{ position: 'relative', right: 50 }}
-                            animate={{ left: 0 }}
-                            className="edit-profile w-full h-full bg-white/20 rounded-lg shadow-lg p-8 dark:bg-black/30 backdrop-blur-xl flex flex-col justify-center gap-4"
+                                initial={{ position: 'relative', right: 50 }}
+                                animate={{ left: 0 }}
+                                className="edit-profile w-full h-full bg-white/20 rounded-lg shadow-lg p-8 dark:bg-black/30 backdrop-blur-xl flex flex-col justify-center gap-4"
                             >
                                 <h2 className="font-bold text-2xl max-sm:text-xl dark:text-white leading-normal">Editar Perfil</h2>
                                 <form action="" onSubmit={e => e.preventDefault()} className="flex flex-col justify-center items-start gap-4 dark:text-white w-full">
@@ -158,20 +193,20 @@ function Home() {
                                 </form>
                             </motion.div>
                             <motion.div
-                            initial={{ position: 'relative', right: 50 }}
-                            animate={{ left: 0 }}
-                            className="edit-avatar w-full h-full bg-white/20 rounded-lg shadow-lg p-8 dark:bg-black/30 backdrop-blur-xl flex justify-evenly gap-4 items-center max-sm:flex-col"
+                                initial={{ position: 'relative', right: 50 }}
+                                animate={{ left: 0 }}
+                                className="edit-avatar w-full h-full bg-white/20 rounded-lg shadow-lg p-8 dark:bg-black/30 backdrop-blur-xl flex justify-evenly gap-4 items-center max-sm:flex-col"
                             >
                                 <div className="edit-avatar-left-preview flex justify-center w-[50%]">
                                     <motion.div
-                                    whileHover={{ scale: 1.1 }}
-                                    whileTap={{ scale: 1 }}
-                                    className="avatar-preview size-52 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full max-sm:size-35 max-lg:size-45 cursor-pointer"
-                                    onClick={() => {
-                                        if (avatarInputRef) {
-                                            avatarInputRef.current?.click()
-                                        }
-                                    }}
+                                        whileHover={{ scale: 1.1 }}
+                                        whileTap={{ scale: 1 }}
+                                        className="avatar-preview size-52 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full max-sm:size-35 max-lg:size-45 cursor-pointer"
+                                        onClick={() => {
+                                            if (avatarInputRef) {
+                                                avatarInputRef.current?.click()
+                                            }
+                                        }}
                                     >
                                         <img src={avatar ? makeBlobUrl(avatar!) : avatarUrl} alt="user avatar" className="w-full h-full rounded-full object-cover" />
                                     </motion.div>

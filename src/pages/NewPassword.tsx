@@ -3,6 +3,8 @@ import { Eye, EyeClosed, Lock } from "lucide-react"
 import { Link, useNavigate } from "react-router"
 import { supabase } from '../utils/utils'
 import { useToast } from '../hooks/useToast'
+import { useLoading } from '../hooks/useLoading'
+import Loading from '../components/Loading'
 
 function NewPassword() {
     const [showPassword, setShowPassword] = useState(false)
@@ -10,6 +12,7 @@ function NewPassword() {
     const [canRecover, setCanRecover] = useState(false)
     const navigate = useNavigate()
     const { showToastMessage } = useToast()
+    const { loading, setLoading } = useLoading()
 
     useEffect(() => {
         supabase.auth.onAuthStateChange(async (event) => {
@@ -20,19 +23,31 @@ function NewPassword() {
     }, [])
 
     const onUpdatePassword = async () => {
-        const { error } = await supabase.auth
-            .updateUser({ password: password! })
-        if (error) {
-            showToastMessage('Ha ocurrido un problema cambiando la contraseña', 'error')
-            return
-        }
-        showToastMessage('Se ha cambiado la contraseña correctamente', 'error')
+        setLoading(true)
+        try {
+            const { error } = await supabase.auth
+                .updateUser({ password: password! })
+            if (error) {
+                setLoading(false)
+                showToastMessage('Ha ocurrido un problema cambiando la contraseña', 'error')
+                return
+            }
+            setLoading(false)
+            showToastMessage('Se ha cambiado la contraseña correctamente', 'success')
 
-        localStorage.clear()
-        setTimeout(() => {
-            navigate('/')
-        }, 3000)
+            localStorage.clear()
+            setTimeout(() => {
+                navigate('/')
+            }, 3000)
+        } catch (error) {
+            showToastMessage('Ha ocurrido un problema cambiando la contraseña', 'error')
+            console.error(error)
+        } finally {
+            setLoading(false)
+        }
     }
+
+    if (loading) return <Loading />
 
     return (
         <>
