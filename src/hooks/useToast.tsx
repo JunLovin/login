@@ -4,7 +4,7 @@ import Toast from "../components/Toast";
 // eslint-disable-next-line react-refresh/only-export-components
 export const ToastContext = createContext<{ showToastMessage: (message: string, type?: "success" | "error") => void } | null>(null)
 
-export const ToastProvider = ({ children } : { children: React.ReactNode }) => {
+export function ToastProvider({ children } : { children: React.ReactNode }) {
     const [showToast, setShowToast] = useState(false)
     const [status, setStatus] = useState('')
     const [type, setType] = useState<'success' | 'error'>('success')
